@@ -22,7 +22,7 @@ for year in years:
             	  %(str(months[month]) + '-' + year))
 
 # Shanghai Steel Rebar Futures, Continuous Contract #1 (RB1) (Front Month)
-years = ['2009', '2010', '2011', '2012', '2013', '2014' '2015', '2016', '2017', '2018', '2019']
+years = ['2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018', '2019']
 for year in years:
     for month in months.keys():
         try:
