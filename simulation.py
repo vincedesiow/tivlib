@@ -65,3 +65,33 @@ def moving_average_crossover_strategy(window=5, opp_direction = False,
 		os_data = ioe159["Settle"][out_sample_start:]
 		os_direction = direction[-len(os_data):]
 		show_pnl(os_direction, os_data)
+
+def macd_negative_divergence_strategy(long=26, 
+									  mid=12,
+									  short=9,
+									  out_sample_start=None):
+	"""
+	default MACD(26, 12, 9) is used
+	"""
+	ioe159 = get_jan_may_sep()
+	ema_long = ioe159['Settle'].ewm(span=long, adjust=False).mean()
+	ema_mid = ioe159['Settle'].ewm(span=mid, adjust=False).mean()
+	macd = ema_mid - ema_long
+	macd_ema_short = macd.ewm(span=short, adjust=False).mean()
+	direction = []
+	position = 0
+	for i in range(ioe159.shape[0]):
+	    if macd[i] > macd_ema_short[i]:
+	        position = 1
+	    else:
+	    	position = -1
+	    direction.append(position)
+
+	direction = np.array(direction)
+
+	if out_sample_start is None:
+		show_pnl(direction, ioe159["Settle"])
+	else:
+		os_data = ioe159["Settle"][out_sample_start:]
+		os_direction = direction[-len(os_data):]
+		show_pnl(os_direction, os_data)
