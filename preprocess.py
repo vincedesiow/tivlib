@@ -105,7 +105,7 @@ def get_rb0(path = "data/store.h5"):
 			end_year = int(contract[4:])
 		timestamp_start = str(start_year) + '-' + str(start_month)
 		timestamp_end = str(end_year) + '-' + str(end_month)
-		raw_df = f[contract][['Volume', 'Settle']]
+		raw_df = f[contract][['Open', 'Close', 'High', 'Low', 'Volume', 'Settle']]
 		try:
 			# rollover is done on the 15 of each month or the first day after 15
 			start_date = raw_df[timestamp_start + '-15':].index[0] + pd.DateOffset(1)
