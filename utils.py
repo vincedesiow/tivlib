@@ -16,6 +16,8 @@ def show_pnl(direction, out_sample_price, save=False,
 		day_zero_price = out_sample_price[-len(cumulative_profits)]
 		print("Annualized returns based on 252 trading days per year and investing in 1 unit of iron on day 0: ", 
 			 round(((sum(daily_profits) + day_zero_price)/day_zero_price) ** (252/len(cumulative_profits)) - 1, 5) * 100, "%")
+		print_dir = "long" if direction[-1] > 0 else "short"
+		print("Direction to take now: " + print_dir)
 		fig, ax = plt.subplots(1,2, figsize=(18,6))
 
 		ax[0].hist(daily_profits)
@@ -40,6 +42,8 @@ def show_pnl(direction, out_sample_price, save=False,
 		day_zero_price = out_sample_price[-len(cumulative_profits)]
 		returns = round(((sum(daily_profits) + day_zero_price)/day_zero_price) ** (252/len(cumulative_profits)) - 1, 5)
 		f.write("Annualized returns based on 252 trading days per year and investing in 1 unit of iron on day 0: " +"{:.2%}\n".format(returns))
+		print_dir = "long" if direction[-1] > 0 else "short"
+		f.write("Direction to take now: " + print_dir)
 		f.close()
 		fig, ax = plt.subplots(1,2, figsize=(18,6))
 		ax[0].hist(daily_profits)
