@@ -1,5 +1,6 @@
 import numpy as np
-from tivlib.preprocess import get_ioe0, get_rb0
+import pandas as pd
+from tivlib.preprocess import get_ioe0, get_rb0, get_hc0
 from tivlib.stats import slow_stochastic
 from tivlib.utils import show_pnl
 import matplotlib.pyplot as plt
@@ -10,6 +11,10 @@ def select_security(security):
 		return get_ioe0()
 	elif security == 'rebar':
 		return get_rb0()
+	elif security == 'hot coil':
+		return get_hc0()
+
+# === Technical Indicators ===
 
 def slow_stochastic_strategy(security,
 						     window=5, 
@@ -188,14 +193,58 @@ def bollinger_bands_strategy(security, window=14, out_sample_start=None,
 		os_direction = direction[-len(os_data):]
 		show_pnl(os_direction, os_data)
 
+def dmi_strategy(security, window=14, out_sample_start=None,
+				 use_divergence=False, 
+				 return_directions=False):
+	"""
+	directional movement index
+	"""
+	df = select_security(security)
+	pnl = df['Settle']- df['Settle'].shift(1)
+	upward = np.where((df['Settle'] - df['High'].shift(1)) > 0, 1, 0)
+	downward = np.where((df['Settle'] - df['Low'].shift(1)) < 0, 1, 0)
+	upward_sum = pd.Series(upward).rolling(window=window).sum()
+	downward_sum = pd.Series(downward).rolling(window=window).sum()
+	direction = None
+	if use_divergence:
+		divergence = upward_sum - downward_sum
+		direction = np.where(divergence > divergence.shift(1), 1, -1)
+	else:
+		direction = np.where(upward_sum >= downward_sum, 1, -1)
+	if return_directions:
+		return direction
+
+	if out_sample_start is None:
+		show_pnl(direction, df["Settle"])
+	else:
+		os_data = df["Settle"][out_sample_start:]
+		os_direction = direction[-len(os_data):]
+		show_pnl(os_direction, os_data)
+
+# === Trend Following ===
+def trend_delay_strategy(security, delay=1, out_sample_start=None, 
+						 return_directions=False):
+	df = select_security(security)
+	direction = np.sign(df['Settle'] - df['Settle'].shift(delay))
+	direction = direction.fillna(0)
+	if return_directions:
+		return direction
+
+	if out_sample_start is None:
+		show_pnl(direction, df["Settle"])
+	else:
+		os_data = df["Settle"][out_sample_start:]
+		os_direction = direction[-len(os_data):]
+		show_pnl(os_direction, os_data)
+
 def master_strategy(security, out_sample_start=None, return_directions=False):
 	df = select_security(security)
 	direction = None
 	if security == 'iron':
 		dir1 = slow_stochastic_strategy(security=security,
-										window=3, 
-										lower=0.35,
-										upper=0.65,
+										window=2, 
+										lower=0.4,
+										upper=0.6,
 										out_sample_start=out_sample_start, 
 										return_directions=True)
 		dir2 = moving_average_crossover_strategy(security=security, 
@@ -217,13 +266,37 @@ def master_strategy(security, out_sample_start=None, return_directions=False):
 
 	elif security == 'rebar':
 		dir1 = slow_stochastic_strategy(security=security,
+										window=2, 
+										lower=0.3,
+										upper=0.7,
+										out_sample_start=out_sample_start, 
+										return_directions=True)
+		dir2 = moving_average_crossover_strategy(security=security, 
+												 window=5, 
+												 opp_direction=True, 
+												 out_sample_start=out_sample_start, 
+												 return_directions=True)
+		dir3 = macd_strategy(security=security, 
+							 long=26, 
+							 mid=12, 
+							 short=2, 
+							 use_divergence=True, 
+							 out_sample_start=out_sample_start, 
+							 return_directions=True)
+		directions = np.stack((dir1, dir2, dir3), axis=1)
+		direction = stats.mode(directions, axis=1)[0]
+		direction = direction.reshape((direction.shape[0]))
+		direction = np.array(direction)
+
+	elif security == 'hot coil':
+		dir1 = slow_stochastic_strategy(security=security,
 										window=7, 
 										lower=0.4,
 										upper=0.6,
 										out_sample_start=out_sample_start, 
 										return_directions=True)
 		dir2 = moving_average_crossover_strategy(security=security, 
-												 window=5, 
+												 window=2, 
 												 opp_direction=True, 
 												 out_sample_start=out_sample_start, 
 												 return_directions=True)

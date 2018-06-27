@@ -23,8 +23,8 @@ def get_ioe1(path = "data/store.h5"):
 	"""
 	f = pd.HDFStore(path)
 	ioe1 = pd.DataFrame()
-	rebar_contracts = [i for i in f.keys() if i[1] is 'I']
-	for contract in rebar_contracts:
+	rb_contracts = [i for i in f.keys() if i[1] is 'I']
+	for contract in rb_contracts:
 	    contract_month = months[contract[2]]  - 1
 	    contract_year = int(contract[3:])
 	    contract_year = contract_year - 1 if contract_month <= 0 else contract_year
@@ -52,8 +52,8 @@ def get_ioe0(path = "data/store.h5"):
 	"""
 	f = pd.HDFStore(path)
 	ioe2 = pd.DataFrame()
-	rebar_contracts = [i for i in f.keys() if i[1:3]  in ['IF', 'IK', 'IU']]
-	for contract in rebar_contracts:
+	rb_contracts = [i for i in f.keys() if i[1:3]  in ['IF', 'IK', 'IU']]
+	for contract in rb_contracts:
 	    start_month = months[contract[2]] - 6
 	    start_year = int(contract[3:])
 	    start_year = start_year - 1 if start_month <= 0 else start_year
@@ -80,13 +80,13 @@ def get_ioe0(path = "data/store.h5"):
 
 def get_rb0(path = "data/store.h5"):
 	"""
-	make modified continuous rebar futures using Jan, May and Sep contracts
+	make modified continuous rebar futures using Jan, May and Oct contracts
 	rollovered 2 months prior to expiration 
 	"""
 	f = pd.HDFStore(path)
 	rb0 = pd.DataFrame()
-	rebar_contracts = [i for i in f.keys() if i[1:4]  in ['RBF', 'RBK', 'RBV']]
-	for contract in rebar_contracts:
+	rb_contracts = [i for i in f.keys() if i[1:4]  in ['RBF', 'RBK', 'RBV']]
+	for contract in rb_contracts:
 		# hard code start_month, end_month, start_year and end_year
 		if months[contract[3]] == 1:
 			start_month = 8
@@ -119,6 +119,48 @@ def get_rb0(path = "data/store.h5"):
 		        print('Data not available yet for %s to %s'%(timestamp_start, timestamp_end))
 	rb0 = rb0.sort_index()
 	return rb0
+
+def get_hc0(path = "data/store.h5"):
+	"""
+	make modified continuous hot rolled coil futures using Jan, May and Oct contracts
+	rollovered 2 months prior to expiration 
+	"""
+	f = pd.HDFStore(path)
+	hc0 = pd.DataFrame()
+	hc_contracts = [i for i in f.keys() if i[1:4]  in ['HCF', 'HCK', 'HCV']]
+	for contract in hc_contracts:
+		# hard code start_month, end_month, start_year and end_year
+		if months[contract[3]] == 1:
+			start_month = 8
+			end_month = 11
+			start_year = int(contract[4:]) - 1
+			end_year = int(contract[4:]) - 1
+		elif months[contract[3]] == 5:
+			start_month = 11
+			end_month = 3
+			start_year = int(contract[4:]) - 1
+			end_year = int(contract[4:])
+		elif months[contract[3]] == 10:
+			start_month = 3
+			end_month = 8
+			start_year = int(contract[4:])
+			end_year = int(contract[4:])
+		timestamp_start = str(start_year) + '-' + str(start_month)
+		timestamp_end = str(end_year) + '-' + str(end_month)
+		raw_df = f[contract][['Open', 'Close', 'High', 'Low', 'Volume', 'Settle']]
+		try:
+			# rollover is done on the 15 of each month or the first day after 15
+			start_date = raw_df[timestamp_start + '-15':].index[0] + pd.DateOffset(1)
+			end_date = raw_df[:timestamp_end + '-15'].index[-1]
+			hc0 = pd.concat([hc0, raw_df.loc[start_date:end_date]])
+		except:
+		    try:
+		        start_date = raw_df[timestamp_start + '-15':].index[0] + pd.DateOffset(1)
+		        hc0 = pd.concat([hc0, raw_df.loc[start_date:]])
+		    except:
+		        print('Data not available yet for %s to %s'%(timestamp_start, timestamp_end))
+	hc0 = hc0.sort_index()
+	return hc0
 
 def rolling_window(a, window):
     shape = a.shape[:-1] + (a.shape[-1] - window + 1, window)

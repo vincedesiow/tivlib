@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 sns.set()
 
-def show_pnl(direction, out_sample_price, save=False,
+def show_pnl(direction, out_sample_price, save=False, show_best=False, 
 			 text_path=None, fig_path=None):
 	direction = np.array(direction)
 	daily_profits = (direction[:-1] * (out_sample_price[1:].values - out_sample_price[:-1].values))
@@ -11,7 +11,7 @@ def show_pnl(direction, out_sample_price, save=False,
 	if not save:
 		print("Total profit after %i trading days since %s: %f"%(len(cumulative_profits), out_sample_price.index[0], cumulative_profits[-1]))
 		print("Average daily profit: ", daily_profits.mean())
-		print("Sharpe: ", daily_profits.mean()/daily_profits.std())
+		print("Sharpe: ", daily_profits.mean()/daily_profits.std()*(252**0.5))
 		print("Times change in direction: ", np.count_nonzero(direction[1:] - direction[:-1]))
 		day_zero_price = out_sample_price[-len(cumulative_profits)]
 		print("Annualized returns based on 252 trading days per year and investing in 1 unit of iron on day 0: ", 
@@ -28,6 +28,9 @@ def show_pnl(direction, out_sample_price, save=False,
 		ax[1].plot(np.arange(len(cumulative_profits)), 
 				   out_sample_price[-len(cumulative_profits):] - out_sample_price[-len(cumulative_profits)], 
 				   label="Long Asset Only")
+		if show_best:
+			ax[1].plot(np.arange(len(cumulative_profits)), np.cumsum(abs(out_sample_price.shift(-1) - out_sample_price).dropna()), 
+					   label="Best Possible PNL")
 		ax[1].set_title("Cumulative Daily Profits")
 		ax[1].set_xlabel("Day")
 		ax[1].set_ylabel("Cumulative PNL")
@@ -37,7 +40,7 @@ def show_pnl(direction, out_sample_price, save=False,
 		f = open(text_path, "w+")
 		f.write("Total profit after %i trading days since %s: %f\n"%(len(cumulative_profits), out_sample_price.index[0], cumulative_profits[-1]))
 		f.write("Average daily profit: %f\n"%(daily_profits.mean()))
-		f.write("Sharpe: %f\n"%(daily_profits.mean()/daily_profits.std()))
+		f.write("Sharpe: %f\n"%(daily_profits.mean()/daily_profits.std()*(252**0.5)))
 		f.write("Times change in direction: %i\n"%(np.count_nonzero(direction[1:] - direction[:-1])))
 		day_zero_price = out_sample_price[-len(cumulative_profits)]
 		returns = round(((sum(daily_profits) + day_zero_price)/day_zero_price) ** (252/len(cumulative_profits)) - 1, 5)
@@ -54,6 +57,9 @@ def show_pnl(direction, out_sample_price, save=False,
 		ax[1].plot(np.arange(len(cumulative_profits)), 
 				   out_sample_price[-len(cumulative_profits):] - out_sample_price[-len(cumulative_profits)], 
 				   label="Long Asset Only")
+		if show_best:
+			ax[1].plot(np.arange(len(cumulative_profits)), np.cumsum(abs(out_sample_price.shift(-1) - out_sample_price).dropna()), 
+					   label="Best Possible PNL")
 		ax[1].set_title("Cumulative Daily Profits")
 		ax[1].set_xlabel("Day")
 		ax[1].set_ylabel("Cumulative PNL")

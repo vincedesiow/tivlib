@@ -32,17 +32,30 @@ for year in years:
             print('Error: no data available yet for rebar futures %s'
             	  %(str(months[month]) + '-' + year))
 
-# fx (Spot rates to USD)
-currencies = ['DEXUSAL', 'DEXBZUS', 'DEXUSUK', 'DEXCAUS', 
-			  'DEXCHUS', 'DEXDNUS', 'DEXUSEU', 'DEXHKUS',
-			  'DEXINUS', 'DEXJPUS', 'DEXMAUS', 'DEXMXUS', 
-			  'DEXTAUS', 'DEXUSNZ', 'DEXNOUS', 'DEXSIUS', 
-			  'DEXSFUS', 'DEXKOUS', 'DEXSLUS', 'DEXSDUS', 
-			  'DEXSZUS', 'DEXTHUS', 'DEXVZUS']
+# Shanghai Hot Rolled Coil Futures Individual Contracts
+years = ['2014', '2015', '2016', '2017', '2018', '2019']
+for year in years:
+    for month in months.keys():
+        try:
+            f['HC'+month+year] = quandl.get('SHFE/HC'+month+year)
+            print('Hot rolled coil futures ' + str(months[month]) + '-' + year + ' successfully obtained')
+        except:
+            print('Error: no data available yet for hot rolled coil futures %s'
+                  %(str(months[month]) + '-' + year))
 
-for currency in currencies:
-	try:
-		f[currency] = quandl.get('FRED/'+currency)
-		print(currency + ' successfully obtained')
-	except:
-		print('Error: no data available for %s'%currency)
+# === Currently not needed ===
+
+# fx (Spot rates to USD)
+# currencies = ['DEXUSAL', 'DEXBZUS', 'DEXUSUK', 'DEXCAUS', 
+# 			  'DEXCHUS', 'DEXDNUS', 'DEXUSEU', 'DEXHKUS',
+# 			  'DEXINUS', 'DEXJPUS', 'DEXMAUS', 'DEXMXUS', 
+# 			  'DEXTAUS', 'DEXUSNZ', 'DEXNOUS', 'DEXSIUS', 
+# 			  'DEXSFUS', 'DEXKOUS', 'DEXSLUS', 'DEXSDUS', 
+# 			  'DEXSZUS', 'DEXTHUS', 'DEXVZUS']
+
+# for currency in currencies:
+# 	try:
+# 		f[currency] = quandl.get('FRED/'+currency)
+# 		print(currency + ' successfully obtained')
+# 	except:
+# 		print('Error: no data available for %s'%currency)
